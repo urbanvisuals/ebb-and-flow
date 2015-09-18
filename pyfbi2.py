@@ -1,5 +1,6 @@
 import os
 import pygame
+from pygame.locals import *
 import time
 import random
 import numpy
@@ -14,9 +15,10 @@ from subprocess import Popen, PIPE
 
 
 os.environ["SDL_FBDEV"] = "/dev/fb1"
-
-fileCurrent = "/tmp/currentTide"
-filePrevious = "/tmp/previousTide"
+os.putenv('SDL_VIDEODRIVER', 'fbcon')
+os.environ["SDL_MOUSEDEV"] = "/dev/input/touchscreen"
+os.environ["SDL_MOUSEDRV"] = "TSLIB"
+#os.putenv('SDL_NOMOUSE', '1')
 
 bgBrightnessB = 255
 bgBrightnessG = 255
@@ -68,41 +70,20 @@ class pyFbi :
   screen = None;
 
   def __init__(self):
-    "Ininitializes a new pygame screen using the framebuffer"
-    # Based on "Python GUI in Linux frame buffer"
-    # http://www.karoltomala.com/blog/?p=679
-    disp_no = os.getenv("DISPLAY")
-    if disp_no:
-      print "I'm running under X display = {0}".format(disp_no)
-
-    # Check which frame buffer drivers are available
-    # Start with fbcon since directfb hangs with composite output
-    drivers = ['fbcon', 'directfb', 'svgalib']
-    found = False
-    for driver in drivers:
-      # Make sure that SDL_VIDEODRIVER is set
-      if not os.getenv('SDL_VIDEODRIVER'):
-        os.putenv('SDL_VIDEODRIVER', driver)
-      try:
-        pygame.display.init()
-      except pygame.error:
-        print 'Driver: {0} failed.'.format(driver)
-        continue
-      found = True
-      break
-
-    if not found:
-      raise Exception('No suitable video driver found!')
-
+    pygame.init()
+    pygame.display.init()
     size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
     print "Framebuffer size: %d x %d" % (size[0], size[1])
     self.screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
     # Hide the mouse
-    pygame.mouse.set_visible(0)
+    #pygame.mouse.set_visible(0)
     # Clear the screen to start
     self.screen.fill((0, 0, 0))        
     # Initialise font support
     pygame.font.init()
+    # loading image
+    loadImg = pygame.image.load("/home/pi/loading.png")
+    self.screen.blit(loadImg, (0, 0))
     # Render the screen
     pygame.display.update()
 
@@ -111,7 +92,7 @@ class pyFbi :
 
   def tide(self):
     # Load and display tide image
-    cmd = 'tide -l "Middle Arm, British Columbia" -m g -gh 240 -gw 320 -f p > /tmp/pytide.png'
+    cmd = 'tide -l "Middle Arm, British Columbia" -em pMm -m g -gh 240 -gw 320 -f p > /tmp/pytide.png'
     os.system( cmd )
     xtideImg = Image.open("/tmp/pytide.png")
 
@@ -121,7 +102,7 @@ class pyFbi :
     #    self.screen.fill(red)
     # Update the display
 
-    img = Image.new("RGB", (1, 192), "black")
+    img = Image.new("RGB", (1, 200), "black")
     pixels = img.load()
     im = numpy.array(img)
 
@@ -150,8 +131,8 @@ class pyFbi :
       rising = True
 
     percentage = currentF/5
-    goingUp = currentF/5*192
-    goingDown = 192 - (currentF/5*192)
+    goingUp = currentF/5*200
+    goingDown = 200 - (currentF/5*200)
 
     print goingUp
     print goingDown
@@ -159,7 +140,7 @@ class pyFbi :
     #print im
 
     # colour background
-    for y in range (0, 192):
+    for y in range (0, 200):
       pixels[0, y] = (0, int(bgBrightnessG*percentage), int(bgBrightnessB)) # green varies with depth full blue
 
     # colour indicator
@@ -168,7 +149,7 @@ class pyFbi :
     # This makes the image upside down!
     #
     #
-    # split tide into whole numbers and decimals on a range of 0 to 192
+    # split tide into whole numbers and decimals on a range of 0 to 200
     # the decimal will allow us to fade up the incoming pixel so it doesn't jump.
     upDec, upInt = math.modf(goingUp)
     downDec, downInt = math.modf(goingDown)
@@ -200,16 +181,16 @@ class pyFbi :
 
 
     # colour background
-    for x in range (301,320):
+    for x in range (291,320):
       for y in range (0, 240):
         tidePixels[x, y] = (0, 0, 0) # black background.
 
 
 
     # colour lighting pattern
-    for x in range (306,315):
-      for y in range (0, 192):
-        tidePixels[x, y+24] = pixels[0, 191-y] # add tide pattern NOTE that 
+    for x in range (301,315):
+      for y in range (0, 200):
+        tidePixels[x, y+33] = pixels[0, 199-y] # add tide pattern NOTE that 
 
     # convert PIL image to pygame image and output it to framebuffer.
     mode = xtideImg.mode
