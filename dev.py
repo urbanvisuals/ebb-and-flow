@@ -1,12 +1,10 @@
 import os
-import pygame
 import time
 import random
 import numpy
 import math
 
 from os.path import exists
-from PIL import Image
 
 import shlex
 from subprocess import Popen, PIPE
@@ -71,13 +69,13 @@ class pyFbi :
     # Load and display tide image
     cmd = 'tide -l "Middle Arm, British Columbia" -m g -gh 240 -gw 320 -f p > /tmp/pytide.png'
     os.system( cmd )
-    xtideImg = Image.open("/tmp/pytide.png")
+    # xtideImg = Image.open("/tmp/pytide.png")
 
-    img = Image.new("RGB", (1, 192), "black")
-    pixels = img.load()
-    im = numpy.array(img)
+    # img = Image.new("RGB", (1, 192), "black")
+    # pixels = img.load()
+    # im = numpy.array(img)
 
-    tidePixels = xtideImg.load()
+    # tidePixels = xtideImg.load()
     getTideData()
 
     #lets work with the numbers a bit and create some variables.
@@ -135,10 +133,10 @@ class pyFbi :
         tidePixels[x, y+24] = pixels[0, 191-y] # add tide pattern NOTE that
 
     # convert PIL image to pygame image and output it to framebuffer.
-    mode = xtideImg.mode
-    size = xtideImg.size
-    data = xtideImg.tostring()
-    tideImg = pygame.image.fromstring(data, size, mode)
+    # mode = xtideImg.mode
+    # size = xtideImg.size
+    # data = xtideImg.tostring()
+  #  tideImg = pygame.image.fromstring(data, size, mode)
 #    fbi.screen.blit(tideImg, (0, 0))
     #pygame.display.update()
 
