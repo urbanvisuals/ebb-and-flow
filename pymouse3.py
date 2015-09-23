@@ -32,8 +32,6 @@ whiteBrightness = 255
 
 rising = True
 
-previousF = 0
-currentF = 0
 pixels = None
 
 wrapper = None
@@ -54,19 +52,19 @@ def SendDMXFrames():
   # set production to 288 channels per universe. 96 pixels
   # universe1 
 
-  if pixels is not None:
+  if fbi.pixels is not None:
     data1 = array.array('B')
     data2 = array.array('B')
 
     for y in range (0,170):
-      r,g,b = pixels[0,y]
+      r,g,b = fbi.pixels[0,y]
       data1.append(r)
       data1.append(g)
       data1.append(b)
 
     # universe1 
     for y in range (170,199):
-      r,g,b = pixels[0,y]
+      r,g,b = fbi.pixels[0,y]
       data2.append(r)
       data2.append(g)
       data2.append(b)
@@ -117,39 +115,78 @@ class pyFbi :
     pygame.display.update()
     #cmd = 'tide -l "Middle Arm, British Columbia" -em pMm -m g -gh 240 -gw 320 -f p > /tmp/pytide.png'
     #os.system( cmd )
+    self.previousF = 0
+    self.currentF = 0
 
   def __del__(self):
-    "Destructor to make sure pygame shuts down, etc."
+      "Destructor to make sure pygame shuts down, etc."
 
-  def getTideData(self):
-    global previousF 
-    global currentF
-    global pixels
-    global tidePixels
-    global xtideImg
+  #def getTideData(self):
+    # global previousF 
+    # global currentF
+    # global pixels
+    # global tidePixels
+    # global xtideImg
 
+    # cmd = 'tide -mr -l "Middle Arm, British Columbia" -s "96:00"'  # arbitrary external command, e.g. "python mytest.py"
+
+    # if previousF == 0.0:
+    #   exitcode, out, err = get_exitcode_stdout_stderr(cmd)
+    #   tTime, val = out.split()
+    #   previousF = float(val)
+    #   print "Previous Value: %f" %previousF
+    #   #
+    #   # Changed to 10 for testing...
+    #   #
+    #   time.sleep(10)
+    #   exitcode, out, err = get_exitcode_stdout_stderr(cmd)
+    #   tTime, val = out.split()
+    #   currentF = float(val)
+    #   print "Current Value: %f" %currentF
+    # else:
+    #   previousF = currentF
+    #   print "Previous Value: %f" %previousF
+    #   exitcode, out, err = get_exitcode_stdout_stderr(cmd)
+    #   tTime, val = out.split()
+    #   currentF = float(val)
+    #   print "Current Value: %f" %currentF
+
+    # cmd = 'tide -l "Middle Arm, British Columbia" -em pMm -m g -gh 240 -gw 320 -f p > /tmp/pytide.png'
+    # os.system( cmd )
+    # self.xtideImg = Image.open("/tmp/pytide.png")
+
+    # img = Image.new("RGB", (1, 200), "black")
+    # pixels = img.load()
+    # im = numpy.asarray(img)
+
+    # tidePixels = xtideImg.load()
+
+  def tide(self):
+    # Load and display tide image
+
+    # self.getTideData()
     cmd = 'tide -mr -l "Middle Arm, British Columbia" -s "96:00"'  # arbitrary external command, e.g. "python mytest.py"
 
-    if previousF == 0.0:
+    if self.previousF == 0.0:
       exitcode, out, err = get_exitcode_stdout_stderr(cmd)
       tTime, val = out.split()
-      previousF = float(val)
-      print "Previous Value: %f" %previousF
+      self.previousF = float(val)
+      print "Previous Value: %f" % self.previousF
       #
       # Changed to 10 for testing...
       #
       time.sleep(10)
       exitcode, out, err = get_exitcode_stdout_stderr(cmd)
       tTime, val = out.split()
-      currentF = float(val)
-      print "Current Value: %f" %currentF
+      self.currentF = float(val)
+      print "Current Value: %f" % self.currentF
     else:
-      previousF = currentF
-      print "Previous Value: %f" %previousF
+      self.previousF = self.currentF
+      print "Previous Value: %f" % self.previousF
       exitcode, out, err = get_exitcode_stdout_stderr(cmd)
       tTime, val = out.split()
-      currentF = float(val)
-      print "Current Value: %f" %currentF
+      self.currentF = float(val)
+      print "Current Value: %f" % self.currentF
 
     cmd = 'tide -l "Middle Arm, British Columbia" -em pMm -m g -gh 240 -gw 320 -f p > /tmp/pytide.png'
     os.system( cmd )
@@ -161,18 +198,13 @@ class pyFbi :
 
     tidePixels = xtideImg.load()
 
-  def tide(self):
-    # Load and display tide image
-
-    self.getTideData()
-
     #lets work with the numbers a bit and create some variables.
-    if currentF > previousF:
+    if self.currentF > self.previousF:
       rising = True
 
-    percentage = currentF/5
-    goingUp = currentF/5*200
-    goingDown = 200 - (currentF/5*200)
+    percentage = self.currentF/5
+    goingUp = self.currentF/5*200
+    goingDown = 200 - (self.currentF/5*200)
 
     print goingUp
     print goingDown
@@ -219,7 +251,7 @@ class pyFbi :
     #  Still need to draw the tail to indicate tide direction. We may also 
     #
 
-
+    self.pixels = pixels
     SendDMXFrames()
 
     # colour background
@@ -290,4 +322,5 @@ wrapper = ClientWrapper()
 #wrapper.Run()
 
 while True:
+    #fbi.getTideData()
     fbi.tide()
