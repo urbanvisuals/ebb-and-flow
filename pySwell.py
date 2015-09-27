@@ -1,19 +1,18 @@
 import os
 import pygame
 from pygame.locals import *
-import time
-import random
-import numpy
+#import time
+#import random
+#import numpy
 import math
-import signal
-import threading
+#import signal
+#import threading
 import array
-from ola.ClientWrapper import ClientWrapper
-import subprocess as sp
+from ola import OlaClient 
+#import subprocess as sp
 import cv2
 import cv2.cv as cv
-
-
+import select 
 from os.path import exists
 from PIL import Image
 
@@ -40,7 +39,7 @@ rising = True
 
 pixels = None
 
-wrapper = None
+#wrapper = None
 
 gammaLUT = array.array('B')
 
@@ -91,10 +90,8 @@ def SendDMXFrames(pixels):
       data1.append(g)
       data1.append(b)
 
-    #print 'Should be sending DMX here:'
-
     # send
-    wrapper.Client().SendDmx(11, data1, DmxSent)
+    ola_client.SendDmx(11, data1, DmxSent)
     #wrapper.Client().SendDmx(12, data2, DmxSent)
 
   else:
@@ -114,283 +111,44 @@ def get_exitcode_stdout_stderr(cmd):
     return exitcode, out, err
 
 
-class pyFbi :
-  screen = None;
-
-  def __init__(self):
-    pygame.init()
-    pygame.time.set_timer(USEREVENT + 1, 10000)
-    pygame.display.init()
-    size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
-    print "Framebuffer size: %d x %d" % (size[0], size[1])
-    self.screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
-    # Hide the mouse
-    #pygame.mouse.set_visible(0)
-    # Clear the screen to start
-    self.screen.fill((0, 0, 0))        
-    # Initialise font support
-    pygame.font.init()
-    # loading image
-    #loadImg = pygame.image.load("/home/pi/loading.png")
-    #self.screen.blit(loadImg, (0, 0))
-    # Render the screen
-    pygame.display.update()
-
-    # self.stream= cv2.VideoCapture('bigbuckbunny320p.mp4')
-    # print self.stream.get(cv.CV_CAP_PROP_FRAME_HEIGHT)
-    # print self.stream.get(cv.CV_CAP_PROP_FRAME_COUNT)
-    # self.totalFrames = self.stream.get(cv.CAP_PROP_FRAME_COUNT)
-    # print self.totalFrames
-    self.count = 1
-    self.mouse = False
-
-  def __del__(self):
-      "Destructor to make sure pygame shuts down, etc."
-
-  #def getTideData(self):
-    # global previousF 
-    # global currentF
-    # global pixels
-    # global tidePixels
-    # global xtideImg
-
-    # cmd = 'tide -mr -l "Middle Arm, British Columbia" -s "96:00"'  # arbitrary external command, e.g. "python mytest.py"
-
-    # if previousF == 0.0:
-    #   exitcode, out, err = get_exitcode_stdout_stderr(cmd)
-    #   tTime, val = out.split()
-    #   previousF = float(val)
-    #   print "Previous Value: %f" %previousF
-    #   #
-    #   # Changed to 10 for testing...
-    #   #
-    #   time.sleep(10)
-    #   exitcode, out, err = get_exitcode_stdout_stderr(cmd)
-    #   tTime, val = out.split()
-    #   currentF = float(val)
-    #   print "Current Value: %f" %currentF
-    # else:
-    #   previousF = currentF
-    #   print "Previous Value: %f" %previousF
-    #   exitcode, out, err = get_exitcode_stdout_stderr(cmd)
-    #   tTime, val = out.split()
-    #   currentF = float(val)
-    #   print "Current Value: %f" %currentF
-
-    # cmd = 'tide -l "Middle Arm, British Columbia" -em pMm -m g -gh 240 -gw 320 -f p > /tmp/pytide.png'
-    # os.system( cmd )
-    # self.xtideImg = Image.open("/tmp/pytide.png")
-
-    # img = Image.new("RGB", (1, 200), "black")
-    # pixels = img.load()
-    # im = numpy.asarray(img)
-
-    # tidePixels = xtideImg.load()
-
-  def tide(self):
-    # Load and display tide image
-
-    # self.getTideData()
-    # cmd = 'tide -mr -l "Middle Arm, British Columbia" -s "96:00"'  # arbitrary external command, e.g. "python mytest.py"
-
-    # if self.previousF == 0.0:
-    #   exitcode, out, err = get_exitcode_stdout_stderr(cmd)
-    #   tTime, val = out.split()
-    #   self.previousF = float(val)
-    #   print "Previous Value: %f" % self.previousF
-    #   #
-    #   # Changed to 10 for testing...
-    #   #
-    #   time.sleep(10)
-    #   exitcode, out, err = get_exitcode_stdout_stderr(cmd)
-    #   tTime, val = out.split()
-    #   currentF = float(val)
-    #   print "Current Value: %f" % currentF
-    # else:
-    #   self.previousF = currentF
-    #   print "Previous Value: %f" % self.previousF
-    #   exitcode, out, err = get_exitcode_stdout_stderr(cmd)
-    #   tTime, val = out.split()
-    #   currentF = float(val)
-    #   print "Current Value: %f" % currentF
-
-    # cmd = 'tide -l "Middle Arm, British Columbia" -em pMm -m g -gh 240 -gw 320 -f p > /tmp/pytide.png'
-    # os.system( cmd )
-    # xtideImg = Image.open("/tmp/pytide.png")
-
-    # img = Image.new("RGB", (1, 200), "black")
-    # pixels = img.load()
-    # im = numpy.asarray(img)
-
-    # tidePixels = xtideImg.load()
-
-    # #lets work with the numbers a bit and create some variables.
-    # if currentF > self.previousF:
-    #   rising = True
-
-    # percentage = currentF/5
-    # goingUp = currentF/5*200
-    # goingDown = 200 - (currentF/5*200)
-
-    # print goingUp
-    # print goingDown
-
-    # #print im
-
-    # # colour background
-    # for y in range (0, 200):
-    #   pixels[0, y] = (0, int(bgBrightnessG*percentage), int(bgBrightnessB)) # green varies with depth full blue
-
-    # # colour indicator
-    # # start from the top, as our image starts there.
-    # # 
-    # # This makes the image upside down!
-    # #
-    # #
-    # # split tide into whole numbers and decimals on a range of 0 to 200
-    # # the decimal will allow us to fade up the incoming pixel so it doesn't jump.
-    # upDec, upInt = math.modf(goingUp)
-    # downDec, downInt = math.modf(goingDown)
 
 
-    # # current indicator is 7 pixels tall. May need to reduce that when we add the fade out tail.
-    # pixels[0,upInt] = (int(whiteBrightness),int(whiteBrightness),int(whiteBrightness))
-    # pixels[0,upInt-1] = (int(whiteBrightness),int(whiteBrightness),int(whiteBrightness))
-    # pixels[0,upInt-2] = (int(whiteBrightness),int(whiteBrightness),int(whiteBrightness))
-    # pixels[0,upInt+1] = (int(whiteBrightness),int(whiteBrightness),int(whiteBrightness))
-    # pixels[0,upInt+2] = (int(whiteBrightness),int(whiteBrightness),int(whiteBrightness))
-
-    # #draw leading edge fade
-    # r, g, b = pixels[0,upInt+3] 
-    # r = int(max(whiteBrightness*upDec , r))
-    # g = int(max(whiteBrightness*upDec , g))
-    # b = int(max(whiteBrightness*upDec , b))
-    # pixels[0,upInt+3] = r,g,b
-    # #draw trailing edge fade
-    # r, g, b = pixels[0,upInt-3] 
-    # r = int(max(whiteBrightness*downDec , r))
-    # g = int(max(whiteBrightness*downDec , g))
-    # b = int(max(whiteBrightness*downDec , b))
-    # pixels[0,upInt-3] = r,g,b
-
-    # #
-    # #  Still need to draw the tail to indicate tide direction. We may also 
-    # #
-
-    # self.pixels = pixels
-    # SendDMXFrames()
-
-    # # colour background
-    # for x in range (291,320):
-    #   for y in range (0, 240):
-    #     tidePixels[x, y] = (0, 0, 0) # black background.
+# class MouseReader():
+#     def __init__(self):
+#       self.terminated = False
 
 
-
-    # # colour lighting pattern
-    # for x in range (301,315):
-    #   for y in range (0, 200):
-    #     tidePixels[x, y+33] = pixels[0, 199-y] # add tide pattern NOTE that 
-
-    # # convert PIL image to pygame image and output it to framebuffer.
-    # mode = xtideImg.mode
-    # size = xtideImg.size
-    # data = xtideImg.tostring()
-
-    # read 320*240*3 bytes (= 1 frame)
-    # transform the byte read into a numpy array
-
-    c = self.count
-    c = c + 1
-
-    if c == stream.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT):
-        c = 0 #Or whatever as long as it is the same as next line
-        stream.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, 0)
-        print "loop"
-
-    if stream.isOpened():
-      rval, frame = stream.read()
-      #print "frame: ", c
-      #cv2.imwrite(str(c) + '.jpg',frame)
-      self.count = c
-
-      cv2.waitKey(10)
-
-      # mode = 'RGB'
-      # size = (320,180)
-      # data = Img.tostring()
-      # print data.len()
-      if rval:
-        frameRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        if fbi.mouse:
-          swellImg = pygame.image.frombuffer(frame.tostring(), frame.shape[1::-1], "RGB")
-        else:
-          swellImg = pygame.image.frombuffer(frameRGB.tostring(), frameRGB.shape[1::-1], "RGB")
-
-        fbi.screen.blit(swellImg, (0, 0))
-        pygame.display.update()
-        time.sleep(.0022)
-
-      img = Image.new("RGB", (72, 1), "black")
-      pixels = img.load()
-      #
-      # CALCULATE AND SEND HERE
-      # SEND DATA TO DMX HERE
-      #
-      for x in range (0,72):
-        # looks like open cv images are BRG and Y,X by default 
-        pixels[x,0] = gamma(frameRGB[80,x+124,0]),gamma(frameRGB[80,x+124,1]),gamma(frameRGB[80,x+124,2])
-        #print pixels[x,0]
-
-      SendDMXFrames(pixels)
-      #
-      # SEND DATA TO DMX HERE
-      #
-    #lets wait for a bit    
-    #time.sleep(10)
-
-# Create an instance of the PyFbi class
-fbi = pyFbi()
+#     def terminate(self):
+#       self.terminated = True
 
 
-class MouseReader():
-    def __init__(self, fbi):
-        self.fbi = fbi
-        self.terminated = False
-
-
-    def terminate(self):
-        self.terminated = True
-
-
-    def __call__(self):
-        while not self.terminated:
-            # Look for Mouse events and print them
-            for event in pygame.event.get():
-                if(event.type is MOUSEBUTTONDOWN):
-                    pos = pygame.mouse.get_pos()
-                    print pos
-                    if fbi is not None:
-                      print fbi.mouse
-                      fbi.mouse = not fbi.mouse
-            # sleep a bit to not hog CPU
-            time.sleep(0.01)
+#     def __call__(self):
+#       while not self.terminated:
+#         # Look for Mouse events and print them
+#         for event in pygame.event.get():
+#           if(event.type is MOUSEBUTTONDOWN):
+#             pos = pygame.mouse.get_pos()
+#             print pos
+#             print mouseBool
+#             mouseBool = not mouseBool
+#             # sleep a bit to not hog CPU
+#       time.sleep(0.01)
 
 # Start the thread running the callable
-mousereader = MouseReader(fbi)
-threading.Thread(target=mousereader).start()
+#mousereader = MouseReader()
+#threading.Thread(target=mousereader).start()
 
-def signal_handler(signal, frame):
-    print 'You pressed Ctrl+C!'
-    mousereader.terminate()
-    pygame.display.quit()
-    pygame.quit()
-    sys.exit(0)
+# def signal_handler(signal, frame):
+#     print 'You pressed Ctrl+C!'
+#     #mousereader.terminate()
+#     pygame.display.quit()
+#     pygame.quit()
+#     sys.exit(0)
 
 
-signal.signal(signal.SIGINT, signal_handler)
+# signal.signal(signal.SIGINT, signal_handler)
 
-stream= cv2.VideoCapture('bigbuckbunny320p.mp4')
+stream= cv2.VideoCapture('waves.mp4')
 print stream.get(cv.CV_CAP_PROP_FRAME_HEIGHT)
 print "format"
 print stream.get(cv.CV_CAP_PROP_FORMAT)
@@ -401,12 +159,117 @@ frames = stream.get(cv.CV_CAP_PROP_FRAME_COUNT)
 totalFrames = stream.get(cv.CV_CAP_PROP_FRAME_COUNT)
 count=0
 
+swellTitle = Image.open("swellTitle.png")
+
 
 # Start OLA sender
-wrapper = ClientWrapper()
-#wrapper.AddEvent(TICK_INTERVAL, SendDMXFrames)
-#wrapper.Run()
+# let OlaClient create the socket itself 
+ola_client = OlaClient.OlaClient() 
+sock = ola_client.GetSocket() 
+
+# defining custom events for pygame 
+DMX_RECEIVE_EVENT = pygame.USEREVENT + 1 
+SEND_DMX_EVENT_TIMER = pygame.USEREVENT + 2 
+
+#init
+pygame.init()
+pygame.display.init()
+size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+print "Framebuffer size: %d x %d" % (size[0], size[1])
+screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
+print "init clock"
+clock = pygame.time.Clock() 
+# set a timer to send dmx. 
+print "timer"
+pygame.time.set_timer(SEND_DMX_EVENT_TIMER, 40) 
+# Hide the mouse
+pygame.mouse.set_visible(0)
+# Clear the screen to start
+screen.fill((0, 0, 0))        
+# Initialise font support
+pygame.font.init()
+# loading image
+# loadImg = pygame.image.load("/home/pi/loading.png")
+# self.screen.blit(loadImg, (0, 0))
+# Render the screen
+pygame.display.update()
+# self.stream= cv2.VideoCapture('bigbuckbunny320p.mp4')
+# print self.stream.get(cv.CV_CAP_PROP_FRAME_HEIGHT)
+# print self.stream.get(cv.CV_CAP_PROP_FRAME_COUNT)
+# self.totalFrames = self.stream.get(cv.CAP_PROP_FRAME_COUNT)
+# print self.totalFrames
+count = 1
+mouseBool = False
+
+
 
 while True:
-    #fbi.getTideData()
-    fbi.tide()
+  # print "loop started"
+  # check for pygame events 
+  for event in pygame.event.get(): 
+    if event.type == pygame.QUIT: 
+      pygame.display.quit()
+      pygame.quit()
+      sys.exit()     
+    if event.type == QUIT: 
+      pygame.display.quit()
+      pygame.quit()
+      sys.exit() 
+    if event.type == KEYDOWN and e.key == K_ESCAPE:
+      pygame.display.quit()
+      pygame.quit()
+      sys.exit() 
+
+    # send dmx timer reached 
+    if event.type == SEND_DMX_EVENT_TIMER: 
+      SendDMXFrames(pixels)
+    if event.type == MOUSEBUTTONDOWN:
+      print mouseBool
+      mouseBool = not mouseBool
+
+  count = count + 1
+
+  if count == stream.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT):
+    count = 0 #Or whatever as long as it is the same as next line
+    stream.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, 0)
+    print "looping video file"
+
+  if stream.isOpened():
+    rval, frame = stream.read()
+    #cv2.imwrite(str(c) + '.jpg',frame)
+
+    cv2.waitKey(10)
+    img = Image.new("RGB", (72, 1), "black")
+    pixels = img.load()
+    # mode = 'RGB'
+    # size = (320,180)
+    # data = Img.tostring()
+    # print data.len()
+    if rval:
+      frameRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+      if mouseBool:
+        swellImg = pygame.image.frombuffer(frame.tostring(), frame.shape[1::-1], "RGB")
+        for x in range (0,72):
+          pixels[x,0] = gamma(frame[80,x+124,0]),gamma(frame[80,x+124,1]),gamma(frame[80,x+124,2])
+      else:
+        swellImg = pygame.image.frombuffer(frameRGB.tostring(), frameRGB.shape[1::-1], "RGB")
+        for x in range (0,72):
+          pixels[x,0] = gamma(frameRGB[80,x+124,0]),gamma(frameRGB[80,x+124,1]),gamma(frameRGB[80,x+124,2])
+      screen.blit(swellImg, (0, 0))
+      
+      mode = swellTitle.mode
+      size = swellTitle.size
+      data = swellTitle.tostring()
+      TitleImg = pygame.image.fromstring(data, size, mode)
+      screen.blit(TitleImg, (0, 180))
+      pygame.display.update()
+      # 25 fps 
+      clock.tick(25) 
+       
+      # check if there is something to do 
+      readable, writable, exceptional = select.select([sock], [], [], 0) 
+      if readable: 
+        # tell it ola_client 
+        ola_client.SocketReady() 
+
+
