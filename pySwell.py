@@ -19,57 +19,14 @@ from PIL import Image
 import shlex
 #from subprocess import Popen, PIPE
 
-TICK_INTERVAL = 100  # in ms
-
-
-os.environ["SDL_FBDEV"] = "/dev/fb1"
-os.putenv('SDL_VIDEODRIVER', 'fbcon')
-os.environ["SDL_MOUSEDEV"] = "/dev/input/touchscreen"
-os.environ["SDL_MOUSEDRV"] = "TSLIB"
-#os.putenv('SDL_NOMOUSE', '1')
-
-global totalFrames
-global count
-
-bgBrightnessB = 128
-bgBrightnessG = 128
-whiteBrightness = 255
-
-rising = True
-
-pixels = None
-
-#wrapper = None
-
-gammaLUT = array.array('B')
-
-gammaLUT = [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,
-  1,  1,  1,  1,  1,  1,  1,  1,  1,  2,  2,  2,  2,  2,  2,  2,
-  2,  3,  3,  3,  3,  3,  3,  3,  4,  4,  4,  4,  4,  5,  5,  5,
-  5,  6,  6,  6,  6,  7,  7,  7,  7,  8,  8,  8,  9,  9,  9, 10,
-  10, 10, 11, 11, 11, 12, 12, 13, 13, 13, 14, 14, 15, 15, 16, 16,
-  17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22, 23, 24, 24, 25,
-  25, 26, 27, 27, 28, 29, 29, 30, 31, 32, 32, 33, 34, 35, 35, 36,
-  37, 38, 39, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 50,
-  51, 52, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 66, 67, 68,
-  69, 70, 72, 73, 74, 75, 77, 78, 79, 81, 82, 83, 85, 86, 87, 89,
-  90, 92, 93, 95, 96, 98, 99,101,102,104,105,107,109,110,112,114,
-  115,117,119,120,122,124,126,127,129,131,133,135,137,138,140,142,
-  144,146,148,150,152,154,156,158,160,162,164,167,169,171,173,175,
-  177,180,182,184,186,189,191,193,196,198,200,203,205,208,210,213,
-  215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255]
-
-def gamma(input):
-  return gammaLUT[input]
-
 
 #
-#  SEND DMX to OLA here
+#   FUNCTIONS   #################################################################################
+# 
+
 #
-def DmxSent(state):
-  if not state.Succeeded():
-    wrapper.Stop()
+#   SEND DMX    #################################
+# 
 
 def SendDMXFrames(pixels):
   ## schdule a function call in 100ms
@@ -92,7 +49,6 @@ def SendDMXFrames(pixels):
 
     # send
     ola_client.SendDmx(11, data1, DmxSent)
-    #wrapper.Client().SendDmx(12, data2, DmxSent)
 
   else:
     print 'Pixels not yet defined'
@@ -111,56 +67,44 @@ def get_exitcode_stdout_stderr(cmd):
     return exitcode, out, err
 
 
+def gamma(input):
+  return gammaLUT[input]
+
+#
+#   VARS   #################################################################################
+# 
+
+os.environ["SDL_FBDEV"] = "/dev/fb1"
+os.putenv('SDL_VIDEODRIVER', 'fbcon')
+os.environ["SDL_MOUSEDEV"] = "/dev/input/touchscreen"
+os.environ["SDL_MOUSEDRV"] = "TSLIB"
+#os.putenv('SDL_NOMOUSE', '1')
+
+pixels = None
+
+gammaLUT = array.array('B')
+
+gammaLUT = [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,
+  1,  1,  1,  1,  1,  1,  1,  1,  1,  2,  2,  2,  2,  2,  2,  2,
+  2,  3,  3,  3,  3,  3,  3,  3,  4,  4,  4,  4,  4,  5,  5,  5,
+  5,  6,  6,  6,  6,  7,  7,  7,  7,  8,  8,  8,  9,  9,  9, 10,
+  10, 10, 11, 11, 11, 12, 12, 13, 13, 13, 14, 14, 15, 15, 16, 16,
+  17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22, 23, 24, 24, 25,
+  25, 26, 27, 27, 28, 29, 29, 30, 31, 32, 32, 33, 34, 35, 35, 36,
+  37, 38, 39, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 50,
+  51, 52, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 66, 67, 68,
+  69, 70, 72, 73, 74, 75, 77, 78, 79, 81, 82, 83, 85, 86, 87, 89,
+  90, 92, 93, 95, 96, 98, 99,101,102,104,105,107,109,110,112,114,
+  115,117,119,120,122,124,126,127,129,131,133,135,137,138,140,142,
+  144,146,148,150,152,154,156,158,160,162,164,167,169,171,173,175,
+  177,180,182,184,186,189,191,193,196,198,200,203,205,208,210,213,
+  215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255]
 
 
-# class MouseReader():
-#     def __init__(self):
-#       self.terminated = False
-
-
-#     def terminate(self):
-#       self.terminated = True
-
-
-#     def __call__(self):
-#       while not self.terminated:
-#         # Look for Mouse events and print them
-#         for event in pygame.event.get():
-#           if(event.type is MOUSEBUTTONDOWN):
-#             pos = pygame.mouse.get_pos()
-#             print pos
-#             print mouseBool
-#             mouseBool = not mouseBool
-#             # sleep a bit to not hog CPU
-#       time.sleep(0.01)
-
-# Start the thread running the callable
-#mousereader = MouseReader()
-#threading.Thread(target=mousereader).start()
-
-# def signal_handler(signal, frame):
-#     print 'You pressed Ctrl+C!'
-#     #mousereader.terminate()
-#     pygame.display.quit()
-#     pygame.quit()
-#     sys.exit(0)
-
-
-# signal.signal(signal.SIGINT, signal_handler)
-
-stream= cv2.VideoCapture('waves.mp4')
-print stream.get(cv.CV_CAP_PROP_FRAME_HEIGHT)
-print "format"
-print stream.get(cv.CV_CAP_PROP_FORMAT)
-print stream.get(cv.CV_CAP_PROP_FPS)
-print stream.get(cv.CV_CAP_PROP_FRAME_COUNT)
-
-frames = stream.get(cv.CV_CAP_PROP_FRAME_COUNT)
-totalFrames = stream.get(cv.CV_CAP_PROP_FRAME_COUNT)
-count=0
-
-swellTitle = Image.open("swellTitle.png")
-
+#
+#   INIT   #################################################################################
+# 
 
 # Start OLA sender
 # let OlaClient create the socket itself 
@@ -198,12 +142,32 @@ pygame.display.update()
 # print self.stream.get(cv.CV_CAP_PROP_FRAME_COUNT)
 # self.totalFrames = self.stream.get(cv.CAP_PROP_FRAME_COUNT)
 # print self.totalFrames
+
+# Load video file and print some info about it
+
+stream= cv2.VideoCapture('waves.mp4')
+print stream.get(cv.CV_CAP_PROP_FRAME_HEIGHT)
+print "format"
+print stream.get(cv.CV_CAP_PROP_FORMAT)
+print stream.get(cv.CV_CAP_PROP_FPS)
+print stream.get(cv.CV_CAP_PROP_FRAME_COUNT)
+
+frames = stream.get(cv.CV_CAP_PROP_FRAME_COUNT)
+totalFrames = stream.get(cv.CV_CAP_PROP_FRAME_COUNT)
+count=0
+
+# load screen title graphic
+swellTitle = Image.open("swellTitle.png")
+
 count = 1
 mouseBool = False
 
-
+#
+#   LOOP   #################################################################################
+# 
 
 while True:
+
   # print "loop started"
   # check for pygame events 
   for event in pygame.event.get(): 
@@ -271,5 +235,3 @@ while True:
       if readable: 
         # tell it ola_client 
         ola_client.SocketReady() 
-
-

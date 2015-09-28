@@ -23,43 +23,40 @@ from subprocess import Popen, PIPE
 # 
 
 #
-#   SEND DMX    #################################################################################
+#   SEND DMX    #################################
 # 
 
-def SendDMXFrames():
-  ## schdule a function call in 100ms
-  ## we do this first in case the frame computation takes a long time.
-  #wrapper.AddEvent(TICK_INTERVAL, SendDMXFrame)
+def SendDMXFrames(pixels):
 
-  # compute frame here  
   # set production to 288 channels per universe. 96 pixels
-  # universe1 
 
-  if fbi.pixels is not None:
+  if pixels is not None:
     data1 = array.array('B')
     data2 = array.array('B')
 
+    # universe 1
     for y in range (0,170):
-      r,g,b = fbi.pixels[0,y]
+      r,g,b = pixels[0,y]
       data1.append(r)
       data1.append(g)
       data1.append(b)
 
-    # universe1 
+    # universe 2
     for y in range (170,199):
-      r,g,b = fbi.pixels[0,y]
+      r,g,b = pixels[0,y]
       data2.append(r)
       data2.append(g)
       data2.append(b)
 
-    print 'Should be sending DMX here:'
+    # print 'Should be sending DMX here:'
 
     # send
-    wrapper.Client().SendDmx(11, data1, DmxSent)
-    wrapper.Client().SendDmx(12, data2, DmxSent)
+    ola_client.SendDmx(11, data1)
+    ola_client.SendDmx(12, data2)
+
 
   else:
-    print 'Pixels not yet defined'
+    print 'pixels not yet defined'
 
 
 def get_exitcode_stdout_stderr(cmd):
@@ -76,12 +73,18 @@ def get_exitcode_stdout_stderr(cmd):
 
 
 #
-#   TIDE RUNNER   #################################################################################
+#   TIDE RUNNER   ################################
 # 
 
 def xtideRunner():
   """ xtideRunner runs xtide and generates the output image for pygame to display """
   
+  global currentF
+  global previousF
+  global rising
+  global pixels
+  global ebbImg
+
   # get current tide value
   cmd = 'tide -mr -l "Middle Arm, British Columbia" -s "96:00"'  # arbitrary external command, e.g. "python mytest.py"
   previousF = currentF
@@ -93,7 +96,7 @@ def xtideRunner():
   # Let's equalize the two values if previousF is still 0
   # 10 seconds later we'll get a true previous value
   #
-  if previousF == 0.0
+  if previousF == 0.0:
     previousF = currentF
   print "Previous Value: %f" % previousF
 
@@ -177,7 +180,6 @@ def xtideRunner():
   ebbImg = pygame.image.fromstring(data, size, mode)
 
 
-
 #
 #   VARS   #################################################################################
 # 
@@ -196,8 +198,31 @@ rising = True
 pixels = None
 ebbImg = None
 
+mouseBool = False
+
 previousF = 0.0
-currentF  = 0.0
+currentF = 0.0
+
+gammaLUT = array.array('B')
+
+gammaLUT = [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,
+  1,  1,  1,  1,  1,  1,  1,  1,  1,  2,  2,  2,  2,  2,  2,  2,
+  2,  3,  3,  3,  3,  3,  3,  3,  4,  4,  4,  4,  4,  5,  5,  5,
+  5,  6,  6,  6,  6,  7,  7,  7,  7,  8,  8,  8,  9,  9,  9, 10,
+  10, 10, 11, 11, 11, 12, 12, 13, 13, 13, 14, 14, 15, 15, 16, 16,
+  17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22, 23, 24, 24, 25,
+  25, 26, 27, 27, 28, 29, 29, 30, 31, 32, 32, 33, 34, 35, 35, 36,
+  37, 38, 39, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 50,
+  51, 52, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 66, 67, 68,
+  69, 70, 72, 73, 74, 75, 77, 78, 79, 81, 82, 83, 85, 86, 87, 89,
+  90, 92, 93, 95, 96, 98, 99,101,102,104,105,107,109,110,112,114,
+  115,117,119,120,122,124,126,127,129,131,133,135,137,138,140,142,
+  144,146,148,150,152,154,156,158,160,162,164,167,169,171,173,175,
+  177,180,182,184,186,189,191,193,196,198,200,203,205,208,210,213,
+  215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255]
+
+
 
 #
 #   INIT   #################################################################################
@@ -225,21 +250,22 @@ print "timers"
 pygame.time.set_timer(SEND_DMX_EVENT_TIMER, 40) 
 pygame.time.set_timer(XTIDE_TIMER, 10000) 
 # Hide the mouse
-pygame.mouse.set_visible(0)
+pygame.mouse.set_visible(1)
 # Clear the screen to start
 screen.fill((0, 0, 0))        
 # Initialise font support
 pygame.font.init()
 # loading image
-loadImg = pygame.image.load("/home/pi/loading.png")
-screen.blit(loadImg, (0, 0))
+ebbImg = pygame.image.load("/home/pi/loading.png")
+screen.blit(ebbImg, (0, 0))
 # Render the screen
 pygame.display.update()
 #cmd = 'tide -l "Middle Arm, British Columbia" -em pMm -m g -gh 240 -gw 320 -f p > /tmp/pytide.png'
 #os.system( cmd )
 
-xtideRunner()
-previousF = CurrentF
+# run xtide once to get current values
+xtideRunner() 
+previousF = currentF
 
 #
 #   LOOP   #################################################################################
@@ -271,11 +297,18 @@ while True:
       print mouseBool
       mouseBool = not mouseBool
 
+  if mouseBool:
+    # put code here to display the current time and display it onscreen
+   screen.fill((255,255,255))
+   screen.blit(ebbImg, (0,0), None, BLEND_RGB_SUB)
+    #
+  else:
+    screen.blit(ebbImg, (0, 0))
 
-  screen.blit(ebbImg, (0, 0))
+  #update the display  
   pygame.display.update()
 
-    
+  
   clock.tick(25) 
    
   # check if there is something to do 
