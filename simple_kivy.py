@@ -6,6 +6,7 @@ from kivy.animation import Animation
 from kivy.properties import ListProperty
 from kivy.core.window import Window
 from kivy.properties import StringProperty
+from kivy.config import Config
 
 from Queue import Queue
 import random
@@ -13,6 +14,10 @@ import random
 import os
 import shlex
 from subprocess import Popen, PIPE
+
+Config.set('graphics','width', 320)
+Config.set('graphics','height', 240)
+Window.size = (320, 240)
 
 '''
 The following XML looking stuff is Kivy template language. It is pretty straight forward
@@ -35,54 +40,7 @@ Builder.load_string('''
         background_color: 0,0,0,1
         font_size: 150
         pos: 300, 300
-    Rect1:
-        pos: 400, 400
-    Rect1:
-        pos: 0, 0
-    Rect2:
-        pos: 400, 400
-    Rect2:
-        pos: 0, 0
-    Rect1:
-        pos: 800, 800
-    Rect1:
-        pos: 1200, 1200
-    Rect2:
-        pos: 800, 800
-    Rect2:
-        pos: 1200, 1200
-    Rect1:
-        pos: 400, 400
-    Rect1:
-        pos: 0, 0
-    Rect2:
-        pos: 400, 400
-    Rect2:
-        pos: 0, 0
-    Rect1:
-        pos: 800, 800
-    Rect1:
-        pos: 1200, 1200
-    Rect2:
-        pos: 800, 800
-    Rect2:
-        pos: 1200, 1200
 
-<Rect1>:
-    canvas:
-        Color:
-            rgba: .2, .1, .7, .3
-        Rectangle:
-            pos: self.pos
-            size: 800,800
-
-<Rect2>:
-    canvas:
-        Color:
-            rgba: .1, .2, .9, .3
-        Rectangle:
-            pos: self.pos
-            size: 800,800
 ''')
 
 '''
@@ -124,38 +82,5 @@ def get_exitcode_stdout_stderr(cmd):
 
     print "Returning from system call..."
     return exitcode, out, err
-
-'''
-Ignore what is happening below... this is just cruft I left in place so that
-there is something to look at for the time being.
-'''
-class Rect1(Widget):
-    velocity = ListProperty([4, 2])
-
-    def __init__(self, **kwargs):
-        super(Rect1, self).__init__(**kwargs)
-
-        Clock.schedule_interval(self.update, 1/60)
-    def update(self, *args):
-        self.x += self.velocity[0]
-
-        if self.x > Window.width:
-            self.x = 0 - self.width - 800 - random.randint(1, 100)
-            self.y = random.randint(1, 1400)
-
-class Rect2(Widget):
-    velocity = ListProperty([5, 3])
-
-    def __init__(self, **kwargs):
-        super(Rect2, self).__init__(**kwargs)
-        Clock.schedule_interval(self.update, 1/60)
-
-    def update(self, *args):
-        self.y += self.velocity[1]
-
-        if self.y > Window.height:
-            self.y = 0 - self.height - 800 - random.randint(1, 100)
-            self.x = random.randint(1, 1400)
-
 
 runTouchApp(Root())
